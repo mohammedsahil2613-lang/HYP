@@ -1,1 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hyper-Niche AI Tool</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    input { padding: 10px; width: 300px; margin: 10px 0; }
+    button { padding: 10px 20px; }
+    #result { margin-top: 20px; font-size: 18px; }
+    #paypal-button-container { margin-top: 20px; }
+  </style>
+</head>
+<body>
 
+  <h1>Hyper-Niche AI Tool</h1>
+  <p>Your $1 = 1 Premium AI-Generated Viral Content</p>
+
+  <input id="topicInput" placeholder="Enter your topic..." />
+  <br>
+  <input id="codeInput" placeholder="Admin/Test code (Sahil599)" />
+  <br>
+  <button id="generateBtn">Generate Content</button>
+
+  <div id="paypal-button-container"></div>
+
+  <h3 id="result">Your content will appear here...</h3>
+
+  <!-- PayPal SDK -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AabN5GZxSoXSSf2SclK4GJSi_VkKwf0EoeFs8-3Dzy6eKakZdgEFFeJdePpt0_aMkF0V6wyXr1y2orNi&currency=USD"></script>
+
+  <script>
+    const resultEl = document.getElementById('result');
+    const topicInput = document.getElementById('topicInput');
+    const codeInput = document.getElementById('codeInput');
+    const generateBtn = document.getElementById('generateBtn');
+
+    async function generateContent(paymentApproved = false) {
+      const code = codeInput.value;
+
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, paymentApproved })
+        });
+        const data = await response.json();
+
+        if (data.content) {
+          resultEl.innerText = data.content;
+        } else {
+          resultEl.innerText = data.error;
+        }
+      } catch (err) {
+        resultEl.innerText = 'Server error';
+      }
+    }
+
+    // Test code / free button
+    generateBtn.addEventListener('click', async () => {
+      const code = codeInput.value;
+      if(code === 'Sahil599') {
+        generateContent(true);
+      } else {
+        resultEl.innerText = 'Please complete payment below to generate content';
+      }
+    });
+
+    // PayPal button
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{ amount: { value: '1.00' } }]
+        });
+      },
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          // After successful payment → generate content
+          generateContent(true);
+        });
+      }
+    }).render('#paypal-button-container');
+  </script>
+
+</body>
+</html>
